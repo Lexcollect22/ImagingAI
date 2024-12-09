@@ -1,40 +1,44 @@
 import cv2
 
-def capture_image():
-    # Initialize the camera
-    camera = cv2.VideoCapture(0)  # 0 is typically the default camera
-
+def initialize_camera(camera_index=0):
+    camera = cv2.VideoCapture(camera_index)
     if not camera.isOpened():
-        print("Error: Could not open camera.")
-        return
+        raise Exception("Error: Could not open camera.")
+    return camera
 
-    print("Press 'c' to capture an image or 'q' to quit.")
+def capture_frame(camera):
+    ret, frame = camera.read()
+    if not ret:
+        raise Exception("Error: Failed to capture image.")
+    return frame
 
-    while True:
-        # Read a frame from the camera
-        ret, frame = camera.read()
+def display_frame(frame):
+    cv2.imshow("Camera", frame)
 
-        if not ret:
-            print("Error: Failed to capture image.")
-            break
+def save_image(frame, file_name="captured_image.jpg"):
+    cv2.imwrite(file_name, frame)
+    print(f"Image saved as {file_name}.")
 
-        # Display the frame
-        cv2.imshow("Camera", frame)
+def main(camera_index=0):
+    try:
+        camera = initialize_camera(camera_index)
+        print("Press 'c' to capture an image or 'q' to quit.")
 
-        # Wait for a key press
-        key = cv2.waitKey(1)
+        while True:
+            frame = capture_frame(camera)
+            display_frame(frame)
 
-        if key == ord('c'):  # Capture image on pressing 'c'
-            file_name = "captured_image.jpg"
-            cv2.imwrite(file_name, frame)
-            print(f"Image saved as {file_name}.")
-        elif key == ord('q'):  # Quit on pressing 'q'
-            break
+            key = cv2.waitKey(1)
+            if key == ord('c'):
+                save_image(frame)
+            elif key == ord('q'):
+                break
 
-    # Release the camera and close windows
-    camera.release()
-    cv2.destroyAllWindows()
+    except Exception as e:
+        print(str(e))
+    finally:
+        camera.release()
+        cv2.destroyAllWindows()
 
-# Run the function
 if __name__ == "__main__":
-    capture_image()
+    main()
